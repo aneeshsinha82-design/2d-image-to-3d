@@ -12,7 +12,7 @@
 <div class="downloads" id="downloads"><a id="glb" download="model.glb">Download GLB</a></div>
 <p class="note">No Meshy API key. No payment required from this website. Generation uses the public Hugging Face TripoSR Space; free compute may have queues or availability limits.</p>
 <script type="module">
-import {Client,handle_file} from 'https://cdn.jsdelivr.net/npm/@gradio/client@1.4.2/+esm';
+import {Client,handle_file} from 'https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js';
 const file=document.getElementById('file'),drop=document.getElementById('drop'),preview=document.getElementById('preview'),generate=document.getElementById('generate'),status=document.getElementById('status'),fill=document.getElementById('fill'),viewer=document.getElementById('viewer'),model=document.getElementById('model'),downloads=document.getElementById('downloads'),glb=document.getElementById('glb');let selected=null;
 function setStatus(t,p){status.textContent=t;fill.style.width=p+'%'}
 function choose(f){if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){setStatus('Please select PNG, JPG or WebP.',0);return}selected=f;preview.src=URL.createObjectURL(f);preview.style.display='block';generate.disabled=false;setStatus('Image ready. Click Generate 3D Model.',0)}
