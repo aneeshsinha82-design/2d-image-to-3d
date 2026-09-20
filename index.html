@@ -1,43 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2D Image to 3D</title>
-  <style>
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;font-family:Arial,sans-serif;background:#0b0d12;color:#fff;display:grid;place-items:center}
-    .card{width:min(900px,92vw);padding:48px;border:1px solid #2b3040;border-radius:24px;background:#121620;text-align:center}
-    h1{font-size:clamp(36px,6vw,64px);margin:0 0 14px}
-    p{color:#aeb6c7;font-size:18px;margin:0 0 32px}
-    .upload{display:inline-flex;align-items:center;justify-content:center;padding:16px 28px;border-radius:12px;background:#fff;color:#111;font-weight:700;cursor:pointer}
-    input{display:none}
-    #status{margin-top:20px;color:#aeb6c7}
-    img{max-width:100%;max-height:420px;margin-top:24px;border-radius:14px;display:none}
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2D Image → 3D Studio</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,Arial,sans-serif;background:#07090d;color:#f7f8fb}
+.wrap{width:min(1050px,94vw);margin:0 auto;padding:54px 0}.hero{text-align:center;margin-bottom:30px}
+h1{font-size:clamp(38px,6vw,68px);margin:0 0 10px;letter-spacing:-2px}.sub{color:#9da6b7;font-size:18px}
+.panel{background:#11151e;border:1px solid #272d3a;border-radius:24px;padding:28px;box-shadow:0 20px 70px #0008}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.box{border:1px dashed #3a4252;border-radius:18px;padding:22px;min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+label.btn,.btn{border:0;border-radius:12px;padding:13px 20px;background:#fff;color:#090b10;font-weight:800;cursor:pointer;display:inline-block}
+input[type=file]{display:none}input[type=password]{width:100%;padding:13px;border-radius:10px;border:1px solid #343b49;background:#0a0d13;color:#fff;margin-top:8px}
+.preview{max-width:100%;max-height:300px;border-radius:12px;display:none}.muted{color:#8f98a9;font-size:14px;line-height:1.5}
+.controls{margin-top:20px}.generate{width:100%;font-size:17px;margin-top:18px}.generate:disabled{opacity:.45;cursor:not-allowed}
+.status{margin-top:18px;padding:13px;border-radius:10px;background:#0b0f16;color:#b9c2d1}.progress{height:7px;background:#252b37;border-radius:99px;overflow:hidden;margin-top:12px;display:none}.bar{height:100%;width:0;background:#fff;transition:width .3s}
+.links{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px}.links a{color:#fff;border:1px solid #3a4250;padding:10px 14px;border-radius:10px;text-decoration:none;display:none}
+.note{margin-top:20px;font-size:12px;color:#7f899a}
+</style>
 </head>
 <body>
-  <main class="card">
-    <h1>2D Image → 3D</h1>
-    <p>Upload a 2D image to begin your 3D conversion workflow.</p>
-    <label class="upload">
-      Choose Image
-      <input id="file" type="file" accept="image/*">
-    </label>
-    <div id="status">No image selected.</div>
-    <img id="preview" alt="Selected image preview">
-  </main>
-  <script>
-    const file = document.getElementById('file');
-    const status = document.getElementById('status');
-    const preview = document.getElementById('preview');
-    file.addEventListener('change', () => {
-      const f = file.files[0];
-      if (!f) return;
-      status.textContent = f.name + ' selected.';
-      preview.src = URL.createObjectURL(f);
-      preview.style.display = 'block';
-    });
-  </script>
+<div class="wrap">
+<div class="hero"><h1>2D Image → 3D</h1><div class="sub">AI 3D model generation studio</div></div>
+<div class="panel">
+<div class="grid">
+<section class="box">
+<label class="btn">Choose 2D Image<input id="file" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"></label>
+<img id="preview" class="preview" alt="Preview">
+<div id="fileText" class="muted" style="margin-top:14px">PNG, JPG or JPEG</div>
+</section>
+<section>
+<div class="muted">Meshy API key</div>
+<input id="key" type="password" placeholder="Paste your Meshy API key">
+<div class="note">For this GitHub Pages version, the key is used only in your browser session. Do not use a key with permissions you do not want exposed to the browser.</div>
+<div class="controls">
+<button id="generate" class="btn generate" disabled>Generate 3D Model</button>
+<div id="status" class="status">Select an image and enter your API key.</div>
+<div class="progress"><div id="bar" class="bar"></div></div>
+<div id="links" class="links"><a id="glb" download>Download GLB</a><a id="fbx" download>Download FBX</a><a id="obj" download>Download OBJ</a></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+<script>
+const file=document.getElementById('file'),key=document.getElementById('key'),preview=document.getElementById('preview'),fileText=document.getElementById('fileText'),generate=document.getElementById('generate'),status=document.getElementById('status'),bar=document.getElementById('bar'),progress=document.querySelector('.progress');
+let dataUri='';
+function update(){generate.disabled=!dataUri||!key.value.trim()}
+file.addEventListener('change',()=>{const f=file.files[0];if(!f)return;if(f.size>20*1024*1024){status.textContent='Image is larger than 20 MB.';return}const r=new FileReader();r.onload=()=>{dataUri=r.result;preview.src=dataUri;preview.style.display='block';fileText.textContent=f.name;status.textContent='Ready to generate.';update()};r.readAsDataURL(f)});
+key.addEventListener('input',update);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function api(url,opts={}){const res=await fetch(url,{...opts,headers:{Authorization:'Bearer '+key.value.trim(),'Content-Type':'application/json',...(opts.headers||{})}});const text=await res.text();let d;try{d=JSON.parse(text)}catch{throw new Error('API returned an unexpected response.')}if(!res.ok)throw new Error(d.message||d.error?.message||('API error '+res.status));return d}
+generate.addEventListener('click',async()=>{
+generate.disabled=true;progress.style.display='block';bar.style.width='5%';status.textContent='Submitting image to the 3D generator…';document.getElementById('links').style.display='none';
+try{
+const created=await api('https://api.meshy.ai/openapi/v1/image-to-3d',{method:'POST',body:JSON.stringify({image_url:dataUri,ai_model:'meshy-7.1',geometry_resolution:'2k',should_texture:true,enable_pbr:true,pose_mode:'a-pose',target_formats:['glb','fbx','obj'],image_enhancement:true})});
+const id=created.result;
+let task;
+for(let i=0;i<120;i++){await sleep(5000);task=await api('https://api.meshy.ai/openapi/v1/image-to-3d/'+id,{method:'GET'});bar.style.width=Math.max(7,Math.min(98,task.progress||0))+'%';status.textContent='Generating 3D model… '+(task.progress||0)+'%';if(task.status==='SUCCEEDED'||task.status==='FAILED')break}
+if(!task||task.status!=='SUCCEEDED')throw new Error(task?.task_error?.message||'Generation failed or timed out.');
+bar.style.width='100%';status.textContent='3D model generated successfully.';
+const urls=task.model_urls||{};[['glb',urls.glb],['fbx',urls.fbx],['obj',urls.obj]].forEach(([id,u])=>{const a=document.getElementById(id);if(u){a.href=u;a.style.display='inline-block'}else a.style.display='none'});document.getElementById('links').style.display='flex';
+}catch(e){status.textContent=e.message||'Something went wrong.';bar.style.width='0%'}finally{update()}
+});
+</script>
 </body>
 </html>
