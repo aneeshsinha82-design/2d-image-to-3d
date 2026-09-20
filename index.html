@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Image to 3D</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;font-family:Arial,sans-serif;background:#0b0d12;color:#fff;display:grid;place-items:center}
+    .card{width:min(900px,92vw);padding:48px;border:1px solid #2b3040;border-radius:24px;background:#121620;text-align:center}
+    h1{font-size:clamp(36px,6vw,64px);margin:0 0 14px}
+    p{color:#aeb6c7;font-size:18px;margin:0 0 32px}
+    .upload{display:inline-flex;align-items:center;justify-content:center;padding:16px 28px;border-radius:12px;background:#fff;color:#111;font-weight:700;cursor:pointer}
+    input{display:none}
+    #status{margin-top:20px;color:#aeb6c7}
+    img{max-width:100%;max-height:420px;margin-top:24px;border-radius:14px;display:none}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>2D Image → 3D</h1>
+    <p>Upload a 2D image to begin your 3D conversion workflow.</p>
+    <label class="upload">
+      Choose Image
+      <input id="file" type="file" accept="image/*">
+    </label>
+    <div id="status">No image selected.</div>
+    <img id="preview" alt="Selected image preview">
+  </main>
+  <script>
+    const file = document.getElementById('file');
+    const status = document.getElementById('status');
+    const preview = document.getElementById('preview');
+    file.addEventListener('change', () => {
+      const f = file.files[0];
+      if (!f) return;
+      status.textContent = f.name + ' selected.';
+      preview.src = URL.createObjectURL(f);
+      preview.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
