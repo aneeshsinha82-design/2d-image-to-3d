@@ -19,13 +19,12 @@ function choose(f){if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){set
 file.onchange=e=>choose(e.target.files[0]);drop.onclick=e=>{if(e.target===drop||e.target.closest('strong,span'))file.click()};drop.ondragover=e=>{e.preventDefault();drop.classList.add('drag')};drop.ondragleave=()=>drop.classList.remove('drag');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('drag');choose(e.dataTransfer.files[0])};
 generate.onclick=async()=>{if(!selected)return;generate.disabled=true;viewer.style.display='none';downloads.style.display='none';setStatus('Connecting to free 3D model…',8);
 try{
-const client=await Client.connect('stabilityai/TripoSR');
+const client=await Client.connect('stabilityai/stable-fast-3d');
 setStatus('Preparing image…',18);
-const pre=await client.predict('/preprocess',{input_image:await handle_file(selected),do_remove_background:true,foreground_ratio:0.85});
-setStatus('Generating 3D model… This can take several minutes on free compute.',35);
-const result=await client.predict('/generate',{image:pre.data[0],mc_resolution:256});
+setStatus('Sending image to the free SF3D GPU…',25);
+const result=await client.predict('/run_button',{run_btn:'Run',input_image:await handle_file(selected),background_state:await handle_file(selected),foreground_ratio:0.85,remesh_option:'None',vertex_count:-1,texture_size:1024},{api_name:'/run_button'});
 setStatus('3D model generated!',100);
-const glbData=result.data[1];
+const glbData=result.data?.[4] ?? result.data?.[5] ?? result.data?.[0];
 const url=typeof glbData==='string'?glbData:(glbData?.url||glbData?.path);
 if(!url)throw new Error('The model was generated but no GLB file was returned.');
 model.src=url;viewer.style.display='block';glb.href=url;downloads.style.display='flex';
