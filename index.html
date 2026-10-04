@@ -25,12 +25,18 @@
 
     <h2>4 · Style</h2>
     <div class="grid">
-      <label>Theme <select id="theme"><option value="editorial">Editorial light (red)</option><option value="night">Night</option><option value="warm">Warm cream (orange)</option></select></label>
+      <label>Theme <select id="theme"><option value="editorial">Editorial light (red)</option><option value="night">Night</option><option value="warm">Warm cream (orange)</option><option value="mint">Mint (green + red)</option></select></label>
       <label>Handle <input id="handle" value="@yourhandle"></label>
+      <label>Picture style <select id="picstyle"><option value="cutout">Cut-out (shadow)</option><option value="card">White card</option><option value="polaroid">Polaroid</option><option value="frame">Gold frame</option></select></label>
+      <label>Picture entrance <select id="entrance"><option value="pop">Pop</option><option value="slide">Slide up</option><option value="spin">Spin in</option></select></label>
+      <label>Scene transition <select id="trans"><option value="wipe">Colour wipe</option><option value="flash">Flash</option><option value="none">None</option></select></label>
       <label>Speed <input id="wpm" type="range" min="80" max="260" value="150"><b id="wpmv">150 wpm</b></label>
       <label>Export <select id="res"><option value="720">HD 720×1280</option><option value="1080" selected>Full HD 1080×1920</option><option value="1440">2K 1440×2560</option></select></label>
       <label>FPS <select id="fps"><option>30</option><option>60</option></select></label>
       <label class="chk"><input type="checkbox" id="autofill" checked> Unmatched scenes use next unused picture</label>
+      <label class="chk"><input type="checkbox" id="deco" checked> Decorations (scene counter + barcode)</label>
+      <label class="chk"><input type="checkbox" id="reflect" checked> Reflection under accent words</label>
+      <label class="chk"><input type="checkbox" id="sfx" checked> Whoosh sound effects (also exported)</label>
       <label class="chk"><input type="checkbox" id="outro" checked> End card</label>
     </div>
   </section>
