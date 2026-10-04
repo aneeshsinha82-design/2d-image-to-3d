@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Script → Video</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;500;800&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Inter:wght@300;400;500;800&family=Playfair+Display:ital,wght@0,500;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head><body>
 <header><h1>Script <span>→</span> Video</h1><p>Write a script, add named pictures, export a 9:16 kinetic-text video in HD.</p></header>
@@ -15,6 +15,7 @@
 
     <h2>2 · Pictures <small>(in chronological order)</small></h2>
     <label class="btn" for="imgs">+ Add pictures</label><input id="imgs" type="file" accept="image/*" multiple hidden>
+    <div id="imgmsg" class="hint"></div>
     <div id="imglist"></div>
     <p class="hint">Rename each picture. Use commas for several trigger words: <code>walter, heisenberg, breaking bad</code>. Click a name chip to insert <code>[tag]</code> in the script.</p>
 
@@ -28,8 +29,10 @@
       <label>Theme <select id="theme"><option value="editorial">Editorial light (red)</option><option value="night">Night</option><option value="warm">Warm cream (orange)</option><option value="mint">Mint (green + red)</option></select></label>
       <label>Handle <input id="handle" value="@yourhandle"></label>
       <label>Picture style <select id="picstyle"><option value="cutout">Cut-out (shadow)</option><option value="card">White card</option><option value="polaroid">Polaroid</option><option value="frame">Gold frame</option></select></label>
-      <label>Picture entrance <select id="entrance"><option value="pop">Pop</option><option value="slide">Slide up</option><option value="spin">Spin in</option></select></label>
-      <label>Scene transition <select id="trans"><option value="wipe">Colour wipe</option><option value="flash">Flash</option><option value="none">None</option></select></label>
+      <label>Picture entrance <select id="entrance"><option value="mix" selected>Mix (different for each picture)</option><option value="pop">Pop</option><option value="slide">Slide up</option><option value="spin">Spin in</option><option value="left">Fly in from left</option><option value="right">Fly in from right</option><option value="drop">Drop + bounce</option><option value="zoom">Zoom in</option><option value="flip">Flip</option><option value="swing">Swing</option></select></label>
+      <label>Scene transition <select id="trans"><option value="mix" selected>Mix (different for each scene)</option><option value="wipe">Colour wipe</option><option value="iris">Circle iris</option><option value="stripes">Stripes</option><option value="glitch">Glitch</option><option value="curtain">Curtain</option><option value="diagonal">Diagonal slash</option><option value="zoom">Zoom punch</option><option value="flash">Flash</option><option value="none">None</option></select></label>
+      <label>Text animation <select id="textanim"><option value="mix" selected>Mix (different for each word)</option><option value="rise">Rise + fade</option><option value="type">Typewriter</option><option value="letters">Letter by letter</option><option value="blur">Blur in</option><option value="zoom">Zoom in</option><option value="slide">Slide from sides</option><option value="bounce">Drop + bounce</option><option value="spin">Spin in</option></select></label>
+      <label>Text font style <select id="fontset"><option value="editorial">Editorial mix</option><option value="poster">Bold poster</option><option value="elegant">Elegant serif</option><option value="script">Handwritten script</option><option value="tech">Tech mono</option></select></label>
       <label>Speed <input id="wpm" type="range" min="80" max="260" value="150"><b id="wpmv">150 wpm</b></label>
       <label>Export <select id="res"><option value="720">HD 720×1280</option><option value="1080" selected>Full HD 1080×1920</option><option value="1440">2K 1440×2560</option></select></label>
       <label>FPS <select id="fps"><option>30</option><option>60</option></select></label>

@@ -20,10 +20,12 @@ Browser tool that turns a **text script + named pictures** into a vertical (9:16
 **Auto-fill:** scenes with no matching picture use the next unused picture in list order.
 
 ## Style options
-- Themes: Editorial (red), Night, Warm cream (orange), Mint (green + red)
-- Picture style: Cut-out, White card, Polaroid, Gold frame
-- Picture entrance: Pop, Slide up, Spin in
-- Scene transition: Colour wipe, Flash, None
+- **Themes:** Editorial (red), Night, Warm cream (orange), Mint (green + red)
+- **Scene transitions** (Mix = a different one for each scene): Colour wipe, Circle iris, Stripes, Glitch, Curtain, Diagonal slash, Zoom punch, Flash, None
+- **Picture entrances** (Mix = a different one for each picture): Pop, Slide up, Spin in, Fly in from left / right, Drop + bounce, Zoom in, Flip, Swing
+- **Text animations** (Mix = a different one for each word): Rise + fade, Typewriter, Letter by letter, Blur in, Zoom in, Slide from sides, Drop + bounce, Spin in
+- **Text font style:** Editorial mix, Bold poster, Elegant serif, Handwritten script, Tech mono
+- **Picture style:** Cut-out, White card, Polaroid, Gold frame
 - Decorations (scene counter + barcode), reflection under accent words, whoosh sound effects (included in the export)
 
 ## Run / deploy
@@ -32,7 +34,7 @@ Use **Chrome or Edge** for MP4 export (other browsers may give WebM). Export ren
 
 ## Files
 - `engine.js` – script parser, picture matching, timeline (pure logic; `node test.mjs`)
-- `themes.js` – colour themes and text styles
+- `themes.js` – colour themes and font sets
 - `draw.js` – canvas renderer (pictures, text, decorations, transitions)
 - `app.js` – UI, playback, audio, export
 - `index.html`, `style.css`, `package.json`

@@ -21,19 +21,29 @@ const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2,
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const getOpts = () => ({
   theme: $('theme').value, handle: $('handle').value.trim(), picStyle: $('picstyle').value,
-  entrance: $('entrance').value, trans: $('trans').value, deco: $('deco').checked, reflect: $('reflect').checked
+  entrance: $('entrance').value, trans: $('trans').value, textAnim: $('textanim').value, fontSet: $('fontset').value,
+  deco: $('deco').checked, reflect: $('reflect').checked
 });
 const draw = (t, S) => renderFrame(ctx, t, S, state.tl, getOpts());
+// when paused at the very start, show a "poster" frame (first picture + first words) instead of a blank screen
+const shownT = () => {
+  const tl = state.tl;
+  if (curT > 0 || !tl || !tl.total) return curT;
+  const first = tl.events.length ? tl.events[0].t : (tl.scenes[0] ? tl.scenes[0].start : 0);
+  return Math.min(first + 1.0, tl.total);
+};
 
 /* ---------- pictures ---------- */
 $('imgs').onchange = async e => {
+  const skipped = [];
   for (const f of e.target.files) {
     const url = URL.createObjectURL(f), el = new Image();
     el.src = url;
-    try { await el.decode(); } catch { continue; }
+    try { await el.decode(); } catch { skipped.push(f.name); URL.revokeObjectURL(url); continue; }
     state.images.push({ id: state.nextId++, name: f.name.replace(/\.[^.]+$/, ''), el, url });
   }
   e.target.value = ''; renderList(); refresh();
+  $('imgmsg').textContent = skipped.length ? `Could not read ${skipped.length} file(s): ${skipped.join(', ')}. Use JPG, PNG or WebP (iPhone HEIC photos are not supported — convert them first).` : '';
 };
 function renderList() {
   const box = $('imglist'); box.innerHTML = '';
@@ -83,9 +93,9 @@ function refresh() {
       (evs.length ? '<br>' + evs.map(e => `<span class="ev">🖼 ${esc(e.img.name || '#')} @ “${esc(sc.words[e.wi].text)}”</span>`).join(' · ') : '<br><span>no picture</span>');
     tl.appendChild(d);
   });
-  draw(curT, cv.width / W); updateTime();
+  draw(shownT(), cv.width / W); updateTime();
 }
-['script', 'wpm', 'autofill', 'outro', 'theme', 'handle', 'picstyle', 'entrance', 'trans', 'deco', 'reflect', 'sfx'].forEach(id => {
+['script', 'wpm', 'autofill', 'outro', 'theme', 'handle', 'picstyle', 'entrance', 'trans', 'textanim', 'fontset', 'deco', 'reflect', 'sfx'].forEach(id => {
   $(id).addEventListener('input', refresh); $(id).addEventListener('change', refresh);
 });
 
@@ -144,7 +154,7 @@ function pause() { playing = false; cancelAnimationFrame(raf); stopAudio(); $('p
 $('play').onclick = () => playing ? pause() : play();
 $('seek').oninput = e => {
   const was = playing; if (was) pause();
-  curT = e.target.value / 1000 * state.tl.total; draw(curT, cv.width / W); updateTime();
+  curT = e.target.value / 1000 * state.tl.total; draw(shownT(), cv.width / W); updateTime();
   if (was) play();
 };
 
@@ -152,7 +162,7 @@ $('seek').oninput = e => {
 $('export').onclick = async () => {
   if (exporting || !state.tl.total) return;
   pause(); exporting = true; $('export').disabled = true;
-  await Promise.all(['800 40px Inter', '300 40px Inter', 'italic 500 40px "Playfair Display"', '400 40px Anton'].map(f => document.fonts.load(f).catch(() => { })));
+  await Promise.all(['800 40px Inter', '300 40px Inter', '500 40px Inter', 'italic 500 40px "Playfair Display"', '500 40px "Playfair Display"', '400 40px Anton', '700 40px "Dancing Script"', '700 40px Caveat', '400 40px "Space Mono"', '700 40px "Space Mono"'].map(f => document.fonts.load(f).catch(() => { })));
   const outW = +$('res').value, outH = Math.round(outW * 16 / 9 / 2) * 2, fps = +$('fps').value, S = outW / W;
   cv.width = outW; cv.height = outH;
   const stream = cv.captureStream(fps);

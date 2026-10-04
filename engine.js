@@ -101,7 +101,20 @@ export function buildTimeline(parsed, images, o = {}) {
   // Auto-fill scenes with no image using unused images in upload order
   if (o.autoFill) {
     const pool = images.filter(im => !used.has(im));
-    rawEvents.forEach((evs, si) => { if (!evs.length && pool.length) evs.push({ wi: 0, img: pool.shift() }); });
+    const empty = rawEvents.map((e, i) => (e.length ? -1 : i)).filter(i => i >= 0);
+    if (pool.length && pool.length <= empty.length) {
+      pool.forEach((img, k) => rawEvents[empty[k]].push({ wi: 0, img }));
+    } else if (pool.length) {
+      // more pictures than empty scenes: spread them evenly over all the words, in upload order
+      const flat = [];
+      scenes.forEach((s, si) => s.words.forEach((w, wi) => flat.push([si, wi])));
+      const N = flat.length;
+      pool.forEach((img, k) => {
+        let pos = Math.floor(k * N / pool.length);
+        while (pos < N && rawEvents[flat[pos][0]].some(e => e.wi === flat[pos][1])) pos++;
+        if (pos < N) rawEvents[flat[pos][0]].push({ wi: flat[pos][1], img });
+      });
+    }
   }
 
   let events = [];
