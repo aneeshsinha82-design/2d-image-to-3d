@@ -6,42 +6,57 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Inter:wght@300;400;500;800&family=Playfair+Display:ital,wght@0,500;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head><body>
-<header><h1>Script <span>→</span> Video</h1><p>Write a script, add named pictures, export a 9:16 kinetic-text video in HD.</p></header>
+<header><h1>Script <span>→</span> Video</h1><p>Write a script, add named pictures, export a 9:16 motion-graphics video in HD.</p></header>
 <main>
   <section class="col editor">
     <h2>1 · Script</h2>
     <textarea id="script" spellcheck="false"></textarea>
-    <p class="hint">Blank line = new scene · <code>[soldier]</code> shows that picture from the next word · <code>*word*</code> = accent colour. A picture also appears automatically when its name is spoken.</p>
+    <p class="hint">Blank line = new scene · <code>[soldier]</code> shows that picture · <code>*word*</code> = big accent keyword · <code>{?}</code> giant ghost symbol behind the text · <code>{icons:gear,headset,24/7,user}</code> orbiting icon badges · <code>((Book Now))</code> button with clicking cursor. Icons: gear, user, headset, chat, star, check, bolt, heart, clock, 24/7, hand, mail.</p>
 
     <h2>2 · Pictures <small>(in chronological order)</small></h2>
     <label class="btn" for="imgs">+ Add pictures</label><input id="imgs" type="file" accept="image/*" multiple hidden>
     <div id="imgmsg" class="hint"></div>
     <div id="imglist"></div>
-    <p class="hint">Rename each picture. Use commas for several trigger words: <code>walter, heisenberg, breaking bad</code>. Click a name chip to insert <code>[tag]</code> in the script.</p>
+    <p class="hint">Rename each picture. Use commas for several trigger words: <code>walter, heisenberg</code>. Click “Insert [tag]” to put the tag in the script.</p>
 
     <h2>3 · Voice-over <small>(optional)</small></h2>
     <label class="btn" for="aud">+ Add audio</label><input id="aud" type="file" accept="audio/*" hidden>
     <span id="audname" class="hint"></span>
-    <p class="hint">With audio, the words are stretched to fit its length. Without it, timing follows the speed slider.</p>
 
     <h2>4 · Style</h2>
-    <div class="grid">
-      <label>Theme <select id="theme"><option value="editorial">Editorial light (red)</option><option value="night">Night</option><option value="warm">Warm cream (orange)</option><option value="mint">Mint (green + red)</option></select></label>
+    <details open><summary>Look</summary><div class="grid">
+      <label>Theme <select id="theme"><option value="editorial">Editorial light (red)</option><option value="night">Night</option><option value="warm">Warm cream (orange)</option><option value="mint">Mint (green + red)</option><option value="cream">Cream + black (ad style)</option><option value="paper">Crumpled paper (beige)</option><option value="alternate" selected>Alternate light / dark every scene</option></select></label>
       <label>Handle <input id="handle" value="@yourhandle"></label>
-      <label>Picture style <select id="picstyle"><option value="cutout">Cut-out (shadow)</option><option value="card">White card</option><option value="polaroid">Polaroid</option><option value="frame">Gold frame</option></select></label>
-      <label>Picture entrance <select id="entrance"><option value="mix" selected>Mix (different for each picture)</option><option value="pop">Pop</option><option value="slide">Slide up</option><option value="spin">Spin in</option><option value="left">Fly in from left</option><option value="right">Fly in from right</option><option value="drop">Drop + bounce</option><option value="zoom">Zoom in</option><option value="flip">Flip</option><option value="swing">Swing</option></select></label>
-      <label>Scene transition <select id="trans"><option value="mix" selected>Mix (different for each scene)</option><option value="wipe">Colour wipe</option><option value="iris">Circle iris</option><option value="stripes">Stripes</option><option value="glitch">Glitch</option><option value="curtain">Curtain</option><option value="diagonal">Diagonal slash</option><option value="zoom">Zoom punch</option><option value="flash">Flash</option><option value="none">None</option></select></label>
-      <label>Text animation <select id="textanim"><option value="mix" selected>Mix (different for each word)</option><option value="rise">Rise + fade</option><option value="type">Typewriter</option><option value="letters">Letter by letter</option><option value="blur">Blur in</option><option value="zoom">Zoom in</option><option value="slide">Slide from sides</option><option value="bounce">Drop + bounce</option><option value="spin">Spin in</option></select></label>
-      <label>Text font style <select id="fontset"><option value="editorial">Editorial mix</option><option value="poster">Bold poster</option><option value="elegant">Elegant serif</option><option value="script">Handwritten script</option><option value="tech">Tech mono</option></select></label>
+      <label>Decorations <select id="deco"><option value="tech" selected>Tech (grid, crosshairs, HD/4K, barcode)</option><option value="min">Minimal (counter + barcode)</option><option value="none">None</option></select></label>
+      <label>Backdrop behind picture <select id="backdrop"><option value="auto" selected>Theme default</option><option value="circle">Accent circle</option><option value="green">Green circle behind head</option><option value="blobs">Big corner circles</option><option value="none">None</option></select></label>
+    </div></details>
+
+    <details open><summary>Text</summary><div class="grid">
+      <label>Text layout <select id="layout"><option value="mix" selected>Mix (different for each scene)</option><option value="stack">Stacked words</option><option value="keyword">Small lead-in + huge keyword</option><option value="keywordtop">Huge keyword on top + helper line</option></select></label>
+      <label>Text font style <select id="fontset"><option value="mix" selected>Mix (different for each scene)</option><option value="agency">Agency bold</option><option value="editorial">Editorial mix</option><option value="poster">Bold poster</option><option value="elegant">Elegant serif</option><option value="script">Handwritten script</option><option value="tech">Tech mono</option></select></label>
+      <label>Text animation <select id="textanim"><option value="mix" selected>Mix (different for each word)</option><option value="rise">Rise + fade</option><option value="type">Typewriter</option><option value="letters">Letter by letter</option><option value="blur">Blur in</option><option value="zoom">Zoom in</option><option value="slide">Slide from sides</option><option value="bounce">Drop + bounce</option><option value="spin">Spin in</option><option value="glitch">Glitch</option><option value="wave">Wavy letters</option><option value="flip">Flip</option><option value="scramble">Scramble decode</option><option value="stretch">Stretch</option></select></label>
+      <label>Text exit <select id="textexit"><option value="blur" selected>Blur out</option><option value="fade">Fade out</option><option value="rise">Float up</option><option value="none">None</option></select></label>
       <label>Speed <input id="wpm" type="range" min="80" max="260" value="150"><b id="wpmv">150 wpm</b></label>
+      <label class="chk"><input type="checkbox" id="splash" checked> Ink splash behind the keyword</label>
+      <label class="chk"><input type="checkbox" id="reflect" checked> Reflection under accent words (stacked layout)</label>
+    </div></details>
+
+    <details open><summary>Pictures &amp; scenes</summary><div class="grid">
+      <label>Picture style <select id="picstyle"><option value="cutout">Cut-out (shadow)</option><option value="card">White card</option><option value="polaroid">Polaroid</option><option value="frame">Gold frame</option><option value="glow">Yellow glow outline</option></select></label>
+      <label>Picture position <select id="picpos"><option value="center" selected>Centre</option><option value="alt">Alternate left / right</option></select></label>
+      <label>Picture entrance <select id="entrance"><option value="mix" selected>Mix (different for each picture)</option><option value="pop">Pop</option><option value="slide">Slide up</option><option value="spin">Spin in</option><option value="left">Fly in from left</option><option value="right">Fly in from right</option><option value="drop">Drop + bounce</option><option value="zoom">Zoom in</option><option value="flip">Flip</option><option value="swing">Swing</option><option value="pendulum">Hang + swing (lamp)</option><option value="snap">Fly + snap</option><option value="rise">Rise up</option><option value="corner">From the corner</option><option value="focus">Blur to focus</option></select></label>
+      <label>Scene transition <select id="trans"><option value="mix" selected>Mix (different for each scene)</option><option value="wipe">Colour wipe</option><option value="iris">Circle iris</option><option value="stripes">Stripes</option><option value="glitch">Glitch</option><option value="curtain">Curtain</option><option value="diagonal">Diagonal slash</option><option value="zoom">Zoom punch</option><option value="flash">Flash</option><option value="slits">Vertical slits open</option><option value="bands">Horizontal bands open</option><option value="ink">Ink flood</option><option value="ribbon">Ribbon sweep</option><option value="dot">Corner circle</option><option value="tilt">Tilt-in camera</option><option value="blurin">Blur-in</option><option value="none">None (hard cut)</option></select></label>
+      <label class="chk"><input type="checkbox" id="autofill" checked> Unmatched scenes use the next unused picture</label>
+    </div></details>
+
+    <details open><summary>Extras &amp; export</summary><div class="grid">
+      <label class="chk"><input type="checkbox" id="wrapper"> Showcase wrapper (teal stage, card, moving timeline)</label>
+      <label class="chk"><input type="checkbox" id="outro" checked> End card</label>
+      <label>End card style <select id="endstyle"><option value="dim" selected>Dimmed last scene + logo</option><option value="black">Black + handle</option></select></label>
+      <label class="chk"><input type="checkbox" id="sfx" checked> Whoosh sound effects (also exported)</label>
       <label>Export <select id="res"><option value="720">HD 720×1280</option><option value="1080" selected>Full HD 1080×1920</option><option value="1440">2K 1440×2560</option></select></label>
       <label>FPS <select id="fps"><option>30</option><option>60</option></select></label>
-      <label class="chk"><input type="checkbox" id="autofill" checked> Unmatched scenes use next unused picture</label>
-      <label class="chk"><input type="checkbox" id="deco" checked> Decorations (scene counter + barcode)</label>
-      <label class="chk"><input type="checkbox" id="reflect" checked> Reflection under accent words</label>
-      <label class="chk"><input type="checkbox" id="sfx" checked> Whoosh sound effects (also exported)</label>
-      <label class="chk"><input type="checkbox" id="outro" checked> End card</label>
-    </div>
+    </div></details>
   </section>
 
   <section class="col preview">

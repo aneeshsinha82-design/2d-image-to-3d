@@ -17,4 +17,12 @@ assert.deepEqual(tl3.events.map(e=>e.img.name),['a1','b2','c3']);
 const three=parseScript("One.\n\nTwo.\n\nThree.");
 const tl4=buildTimeline(three,[{name:'a1'},{name:'b2'}],{autoFill:true});
 assert.deepEqual(tl4.events.map(e=>e.img.name),['a1','b2']);
+// new tokens: ghost symbol, orbit icons, button
+const tk=parseScript("Tired of poor *Marketing* {?}\n\nPeople want *status* {icons:gear,Head set,24/7}\n\nLet's talk. (( Book Now ))");
+assert.equal(tk.length,3);
+assert.equal(tk[0].ghost,'?'); assert.equal(tk[0].words.length,4);
+assert.deepEqual(tk[1].icons,['gear','headset','247']);
+assert.equal(tk[2].button,'Book Now'); assert.equal(tk[2].words.length,2);
+const tl5=buildTimeline(tk,[],{});
+assert.equal(tl5.scenes[0].ghost,'?'); assert.equal(tl5.scenes[2].button,'Book Now');
 console.log('engine ok');

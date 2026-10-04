@@ -6,23 +6,21 @@ const cv = $('cv'), ctx = cv.getContext('2d');
 const state = { images: [], audioBuf: null, tl: null, nextId: 1 };
 let curT = 0, playing = false, exporting = false;
 
-$('script').value = `Getting good at *editing*
-isn't about software.
+$('script').value = `Tired of poor *Marketing*? {?}
 
-It's about how you *absorb*
-the world around you.
+People don't want *services* {icons:gear,headset,24/7,user}
 
-No matter how messy life gets,
-the strongest [soldier] soldier stays in the fight.
+They want *status* and *success*.
 
-Silent. Tired. But never *broken*.`;
+Let's make it *happen*. ((Book Now))`;
 
 const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const getOpts = () => ({
-  theme: $('theme').value, handle: $('handle').value.trim(), picStyle: $('picstyle').value,
-  entrance: $('entrance').value, trans: $('trans').value, textAnim: $('textanim').value, fontSet: $('fontset').value,
-  deco: $('deco').checked, reflect: $('reflect').checked
+  theme: $('theme').value, handle: $('handle').value.trim(), picStyle: $('picstyle').value, picPos: $('picpos').value,
+  entrance: $('entrance').value, trans: $('trans').value, textAnim: $('textanim').value, textExit: $('textexit').value,
+  layout: $('layout').value, fontSet: $('fontset').value, deco: $('deco').value, backdrop: $('backdrop').value,
+  splash: $('splash').checked, reflect: $('reflect').checked, endStyle: $('endstyle').value, wrapper: $('wrapper').checked
 });
 const draw = (t, S) => renderFrame(ctx, t, S, state.tl, getOpts());
 // when paused at the very start, show a "poster" frame (first picture + first words) instead of a blank screen
@@ -95,7 +93,7 @@ function refresh() {
   });
   draw(shownT(), cv.width / W); updateTime();
 }
-['script', 'wpm', 'autofill', 'outro', 'theme', 'handle', 'picstyle', 'entrance', 'trans', 'textanim', 'fontset', 'deco', 'reflect', 'sfx'].forEach(id => {
+['script', 'wpm', 'autofill', 'outro', 'theme', 'handle', 'picstyle', 'picpos', 'entrance', 'trans', 'textanim', 'textexit', 'layout', 'fontset', 'deco', 'backdrop', 'splash', 'reflect', 'endstyle', 'wrapper', 'sfx'].forEach(id => {
   $(id).addEventListener('input', refresh); $(id).addEventListener('change', refresh);
 });
 

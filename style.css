@@ -22,3 +22,7 @@ canvas{width:100%;display:block;border-radius:16px;aspect-ratio:9/16;background:
 .ctrl{display:flex;gap:10px;align-items:center;margin:14px auto 0;max-width:340px}.ctrl input{flex:1}.ctrl span{font-size:12px;color:#8d97a7;white-space:nowrap}
 #tl{display:grid;gap:6px;font-size:12.5px}.sc{background:#11151d;border:1px solid #232b38;border-radius:10px;padding:8px 10px;color:#aeb7c5}
 .sc b{color:#fff}.sc .ev{color:#ffb3ad}
+
+details{margin:10px 0;border:1px solid #232b38;border-radius:12px;padding:6px 12px 14px;background:#0e121a}
+summary{cursor:pointer;font-weight:800;font-size:14px;padding:8px 0;color:#eceff4}
+details .grid{margin-top:8px}

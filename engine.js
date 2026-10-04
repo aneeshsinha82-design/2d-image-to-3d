@@ -19,15 +19,30 @@ export function imageKeys(name) {
 //   blank line or a line of --- = new scene
 //   [soldier]  = show image named "soldier" starting at the NEXT word ([3] = 3rd image in list)
 //   *word*     = emphasised word (accent colour)
+//   {?}        = giant ghost symbol behind the scene text (any text: {?} {0} {$})
+//   {icons:gear,headset,24/7,user} = round icon badges orbiting the scene
+//   ((Book Now)) = black pill button with a clicking hand cursor at the end of the scene
 export function parseScript(src) {
-  const prepared = (src || '').replace(/\[([^\]]+)\]/g, (m, a) => '[' + a.trim().replace(/\s+/g, '_') + ']');
+  const prepared = (src || '')
+    .replace(/\[([^\]]+)\]/g, (m, a) => '[' + a.trim().replace(/\s+/g, '_') + ']')
+    .replace(/\(\(([^)]+)\)\)/g, (m, a) => '((' + a.trim().replace(/\s+/g, '_') + '))')
+    .replace(/\{([^}]+)\}/g, (m, a) => '{' + a.trim().replace(/\s+/g, '_') + '}');
   const scenes = prepared.split(/\n\s*\n|^\s*---+\s*$/m).map(s => s.trim()).filter(Boolean);
   return scenes.map(txt => {
     const words = [];
-    let pending = null;
+    let pending = null, ghost = null, icons = null, button = null;
     for (let tok of txt.split(/\s+/)) {
       let m;
-      while ((m = tok.match(/^\[([^\]]+)\]/))) { pending = m[1]; tok = tok.slice(m[0].length); }
+      while (true) {
+        if ((m = tok.match(/^\[([^\]]+)\]/))) { pending = m[1]; tok = tok.slice(m[0].length); }
+        else if ((m = tok.match(/^\(\(([^)]+)\)\)/))) { button = m[1].replace(/_/g, ' '); tok = tok.slice(m[0].length); }
+        else if ((m = tok.match(/^\{([^}]+)\}/))) {
+          const v = m[1];
+          if (/^icons:/i.test(v)) icons = v.slice(6).split(',').map(x => x.trim().toLowerCase().replace(/[^a-z0-9]/g, '')).filter(Boolean);
+          else ghost = v.replace(/_/g, ' ');
+          tok = tok.slice(m[0].length);
+        } else break;
+      }
       if (!tok) continue;
       const emph = /^\*+[^*]+\*+[^\w]*$/.test(tok);
       tok = tok.replace(/\*/g, '');
@@ -35,7 +50,7 @@ export function parseScript(src) {
       words.push({ text: tok, emph, tag: pending });
       pending = null;
     }
-    return { words };
+    return { words, ghost, icons, button };
   }).filter(s => s.words.length);
 }
 
@@ -94,7 +109,7 @@ export function buildTimeline(parsed, images, o = {}) {
       p.start = words[p.idx[0]].t;
       p.end = k + 1 < phrases.length ? words[phrases[k + 1].idx[0]].t : end;
     });
-    scenes.push({ start, end, words, phrases });
+    scenes.push({ start, end, words, phrases, ghost: sc.ghost, icons: sc.icons, button: sc.button });
     rawEvents.push(evs);
   });
 
