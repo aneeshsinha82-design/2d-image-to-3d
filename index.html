@@ -22,6 +22,17 @@
     <h2>3 · Voice-over <small>(optional)</small></h2>
     <label class="btn" for="aud">+ Add audio</label><input id="aud" type="file" accept="audio/*" hidden>
     <span id="audname" class="hint"></span>
+    <div class="grid" style="margin-top:10px">
+      <label>Voice sync <select id="syncmode"><option value="smart" selected>Smart: follow the voice and its pauses</option><option value="stretch">Stretch evenly over the audio</option></select></label>
+      <label>Fine-tune <input id="syncoff" type="range" min="-800" max="800" step="10" value="0"><b id="syncoffv">0.00 s</b></label>
+    </div>
+    <p class="hint">Fine-tune: move right if the text shows too early, left if too late. For perfect scene starts use tap-to-sync.</p>
+    <button id="tapstart" type="button">🎯 Tap to sync scenes</button> <button id="tapclear" type="button">Clear taps</button>
+    <div id="tapbox" hidden style="margin-top:10px;padding:12px;border:1px solid #ff3b2f;border-radius:12px">
+      <div id="tapinfo" class="hint" style="font-size:14px;color:#eceff4"></div>
+      <button id="tapnext" type="button" class="primary">Next scene ▶ (or press Space)</button>
+      <button id="tapdone" type="button" style="margin-top:8px">Done</button>
+    </div>
 
     <h2>4 · Style</h2>
     <details open><summary>Look</summary><div class="grid">

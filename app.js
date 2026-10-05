@@ -1,9 +1,10 @@
 import { parseScript, buildTimeline } from './engine.js';
+import { analyzeVoice, applyVoiceSync } from './sync.js';
 import { renderFrame, W } from './draw.js';
 
 const $ = id => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
-const state = { images: [], audioBuf: null, tl: null, nextId: 1 };
+const state = { images: [], audioBuf: null, voice: null, marks: {}, marksFor: '', tl: null, nextId: 1 };
 let curT = 0, playing = false, exporting = false;
 
 $('script').value = `Tired of poor *Marketing*? {?}
@@ -70,30 +71,41 @@ function insertTag(im, i) {
 $('aud').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   const ac = new AudioContext();
-  try { state.audioBuf = await ac.decodeAudioData(await f.arrayBuffer()); $('audname').textContent = `${f.name} · ${state.audioBuf.duration.toFixed(1)}s`; }
-  catch { $('audname').textContent = 'Could not read that audio file.'; state.audioBuf = null; }
+  try {
+    state.audioBuf = await ac.decodeAudioData(await f.arrayBuffer());
+    state.voice = analyzeVoice(state.audioBuf.getChannelData(0), state.audioBuf.sampleRate);
+    state.marks = {};
+    const v = state.voice;
+    $('audname').textContent = `${f.name} · ${state.audioBuf.duration.toFixed(1)}s · ` + (v.blocks.length ? `${v.blocks.length} speech parts, ${v.pauses.length} pauses found` : 'no clear speech found (using even stretch)');
+  }
+  catch { $('audname').textContent = 'Could not read that audio file.'; state.audioBuf = null; state.voice = null; }
   ac.close(); refresh();
 };
 
 /* ---------- timeline ---------- */
 function refresh() {
   $('wpmv').textContent = $('wpm').value + ' wpm';
-  state.tl = buildTimeline(parseScript($('script').value), state.images, {
-    wpm: +$('wpm').value, autoFill: $('autofill').checked, outro: $('outro').checked,
-    audioDur: state.audioBuf ? state.audioBuf.duration : 0
-  });
+  const aDur = state.audioBuf ? state.audioBuf.duration : 0, smart = $('syncmode').value === 'smart' && state.voice;
+  const bo = { wpm: +$('wpm').value, autoFill: $('autofill').checked, outro: $('outro').checked };
+  $('syncoffv').textContent = (+$('syncoff').value / 1000).toFixed(2) + ' s';
+  if (state.marksFor !== $('script').value) state.marks = {};   // taps belong to one exact script
+  state.tl = buildTimeline(parseScript($('script').value), state.images, { ...bo, audioDur: smart ? 0 : aDur });
+  if (smart) {
+    const ok = applyVoiceSync(state.tl, state.voice, { offset: +$('syncoff').value / 1000, marks: state.marks, audioDur: aDur });
+    if (!ok) state.tl = buildTimeline(parseScript($('script').value), state.images, { ...bo, audioDur: aDur });
+  }
   curT = Math.min(curT, state.tl.total);
   const tl = $('tl'); tl.innerHTML = '';
   state.tl.scenes.forEach((sc, i) => {
     const evs = state.tl.events.filter(e => e.scene === i);
     const d = document.createElement('div'); d.className = 'sc';
-    d.innerHTML = `<b>Scene ${i + 1}</b> · ${fmt(sc.start)}–${fmt(sc.end)}<br>${esc(sc.words.map(w => w.text).join(' '))}` +
+    d.innerHTML = `<b>Scene ${i + 1}</b>${state.marks[i] !== undefined ? ' 📍' : ''} · ${fmt(sc.start)}–${fmt(sc.end)}<br>${esc(sc.words.map(w => w.text).join(' '))}` +
       (evs.length ? '<br>' + evs.map(e => `<span class="ev">🖼 ${esc(e.img.name || '#')} @ “${esc(sc.words[e.wi].text)}”</span>`).join(' · ') : '<br><span>no picture</span>');
     tl.appendChild(d);
   });
   draw(shownT(), cv.width / W); updateTime();
 }
-['script', 'wpm', 'autofill', 'outro', 'theme', 'handle', 'picstyle', 'picpos', 'entrance', 'trans', 'textanim', 'textexit', 'layout', 'fontset', 'deco', 'backdrop', 'splash', 'reflect', 'endstyle', 'wrapper', 'sfx'].forEach(id => {
+['script', 'wpm', 'autofill', 'outro', 'theme', 'handle', 'picstyle', 'picpos', 'entrance', 'trans', 'textanim', 'textexit', 'layout', 'fontset', 'deco', 'backdrop', 'splash', 'reflect', 'endstyle', 'wrapper', 'sfx', 'syncmode', 'syncoff'].forEach(id => {
   $(id).addEventListener('input', refresh); $(id).addEventListener('change', refresh);
 });
 
@@ -123,6 +135,41 @@ function startSfx(actx, dest, fromT, baseTime) {
   return times.filter(t => t >= fromT).map(t => whoosh(actx, dest, Math.max(baseTime, baseTime + (t - fromT) - 0.05), 0.35));
 }
 
+/* ---------- tap-to-sync: press at the start of every scene while the voice plays ---------- */
+let tap = null;
+function showTapInfo() {
+  const n = state.tl.scenes.length, sc = state.tl.scenes[tap.idx];
+  $('tapinfo').textContent = `Scene ${tap.idx + 1} of ${n}: press when the voice says “${sc.words.slice(0, 4).map(w => w.text).join(' ')}…”`;
+}
+function doTap() {
+  if (!tap) return;
+  tap.marks[tap.idx] = Math.max(0, tap.actx.currentTime - tap.startAt - 0.15);   // 0.15 s = human reaction time
+  tap.idx++;
+  if (tap.idx >= state.tl.scenes.length) finishTap(); else showTapInfo();
+}
+function finishTap() {
+  if (!tap) return;
+  state.marks = { ...tap.marks }; state.marksFor = $('script').value;
+  try { tap.src && tap.src.stop(); } catch { }
+  tap.actx.close(); tap = null; $('tapbox').hidden = true; $('tapstart').disabled = false;
+  $('syncmode').value = 'smart'; refresh();
+}
+$('tapstart').onclick = () => {
+  if (!state.audioBuf) { $('audname').textContent = 'Add a voice-over first.'; return; }
+  if (tap || exporting) return;
+  pause();
+  const actx = new AudioContext(); actx.resume();
+  const startAt = actx.currentTime + 0.1;
+  tap = { actx, startAt, idx: 0, marks: {}, src: startVoice(actx, actx.destination, 0, startAt) };
+  $('tapbox').hidden = false; $('tapstart').disabled = true; showTapInfo();
+};
+$('tapnext').onclick = doTap;
+$('tapdone').onclick = finishTap;
+$('tapclear').onclick = () => { state.marks = {}; refresh(); };
+document.addEventListener('keydown', e => {
+  if (tap && e.code === 'Space') { e.preventDefault(); doTap(); }
+});
+
 /* ---------- playback ---------- */
 let raf = 0;
 function updateTime() {
@@ -131,7 +178,7 @@ function updateTime() {
   $('seek').value = tot ? curT / tot * 1000 : 0;
 }
 function play() {
-  if (exporting || !state.tl.total) return;
+  if (exporting || tap || !state.tl.total) return;
   if (curT >= state.tl.total - 0.05) curT = 0;
   playing = true; $('play').textContent = '❚❚ Pause';
   pactx = pactx || new AudioContext(); pactx.resume();

@@ -1,3 +1,4 @@
+import { analyzeVoice, applyVoiceSync } from './sync.js';
 import {parseScript,buildTimeline} from './engine.js';
 import assert from 'node:assert';
 const imgs=[{name:'soldier'},{name:'walter, heisenberg'},{name:'Galaxy Planet'},{name:'unused'}];
@@ -25,4 +26,29 @@ assert.deepEqual(tk[1].icons,['gear','headset','247']);
 assert.equal(tk[2].button,'Book Now'); assert.equal(tk[2].words.length,2);
 const tl5=buildTimeline(tk,[],{});
 assert.equal(tl5.scenes[0].ghost,'?'); assert.equal(tl5.scenes[2].button,'Book Now');
+// voice sync: a synthetic voice with silence at both ends and pauses; words must land near the true times
+{
+  const SC = "One two three four. Five six seven eight.\n\nNine ten eleven twelve. Thirteen fourteen fifteen.\n\nSixteen seventeen eighteen nineteen twenty.";
+  const sr = 8000, parsed = parseScript(SC);
+  let tt = 1.5, r = 7; const rnd = () => { r = (r * 16807) % 2147483647; return r / 2147483647; };
+  const truth = [], bursts = [];
+  parsed.forEach(sc => sc.words.forEach((w, i) => {
+    const d = 0.06 * w.text.length + 0.12; truth.push(tt); bursts.push([tt, tt + d]); tt += d;
+    tt += i === sc.words.length - 1 ? 0.9 : /[.!?]$/.test(w.text) ? 0.55 : 0.07;
+  }));
+  const n = Math.floor((tt + 1.5) * sr), x = new Float32Array(n);
+  for (let i = 0; i < n; i++) x[i] = (rnd() - 0.5) * 0.002;
+  bursts.forEach(([s, e]) => { for (let i = Math.floor(s * sr); i < Math.floor(e * sr); i++) x[i] += 0.3 * Math.sin(i * 0.12) + (rnd() - 0.5) * 0.2; });
+  const voice = analyzeVoice(x, sr);
+  assert(voice.blocks.length >= 5, 'speech parts found');
+  const tl6 = buildTimeline(parsed, [], { wpm: 150 });
+  applyVoiceSync(tl6, voice, { audioDur: n / sr });
+  const got = tl6.scenes.flatMap(s => s.words.map(w => w.t));
+  const err = got.reduce((a, g, i) => a + Math.abs(g - truth[i]), 0) / got.length;
+  assert(err < 0.2, 'voice sync mean error ' + err);
+  const shifted = buildTimeline(parseScript(SC), [], { wpm: 150 });
+  applyVoiceSync(shifted, voice, { audioDur: n / sr, offset: 0.3 });
+  assert(Math.abs(shifted.scenes[0].words[2].t - tl6.scenes[0].words[2].t - 0.3) < 1e-6, 'offset');
+  assert.equal(applyVoiceSync(buildTimeline(parseScript(SC), [], {}), analyzeVoice(new Float32Array(sr * 2), sr), {}), null);
+}
 console.log('engine ok');
