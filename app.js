@@ -19,7 +19,7 @@ const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2,
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const getOpts = () => ({
   theme: $('theme').value, handle: $('handle').value.trim(), picStyle: $('picstyle').value, picPos: $('picpos').value,
-  entrance: $('entrance').value, trans: $('trans').value, textAnim: $('textanim').value, textExit: $('textexit').value,
+  entrance: $('entrance').value, trans: $('trans').value, camera: $('camera').value, camexit: $('camexit').value, textAnim: $('textanim').value, textExit: $('textexit').value,
   layout: $('layout').value, fontSet: $('fontset').value, deco: $('deco').value, backdrop: $('backdrop').value,
   splash: $('splash').checked, reflect: $('reflect').checked, endStyle: $('endstyle').value, wrapper: $('wrapper').checked
 });
@@ -30,6 +30,18 @@ const shownT = () => {
   if (curT > 0 || !tl || !tl.total) return curT;
   const first = tl.events.length ? tl.events[0].t : (tl.scenes[0] ? tl.scenes[0].start : 0);
   return Math.min(first + 1.0, tl.total);
+};
+
+/* ---------- quick style preset ---------- */
+const PRESETS = {
+  miracle: { theme: 'alternate', trans: 'none', camera: 'mix', camexit: 'mix', layout: 'ladder', textanim: 'mix', textexit: 'none',
+    fontset: 'agency', picstyle: 'cutout', backdrop: 'circle', deco: 'min', entrance: 'mix' }
+};
+$('preset').onchange = e => {
+  const p = PRESETS[e.target.value]; if (!p) return;
+  Object.keys(p).forEach(k => { $(k).value = p[k]; });
+  $('splash').checked = false; $('reflect').checked = false;
+  refresh();
 };
 
 /* ---------- pictures ---------- */
@@ -105,7 +117,7 @@ function refresh() {
   });
   draw(shownT(), cv.width / W); updateTime();
 }
-['script', 'wpm', 'autofill', 'outro', 'theme', 'handle', 'picstyle', 'picpos', 'entrance', 'trans', 'textanim', 'textexit', 'layout', 'fontset', 'deco', 'backdrop', 'splash', 'reflect', 'endstyle', 'wrapper', 'sfx', 'syncmode', 'syncoff'].forEach(id => {
+['script', 'wpm', 'autofill', 'outro', 'theme', 'handle', 'picstyle', 'picpos', 'entrance', 'trans', 'textanim', 'textexit', 'layout', 'fontset', 'deco', 'backdrop', 'splash', 'reflect', 'endstyle', 'wrapper', 'sfx', 'syncmode', 'syncoff', 'camera', 'camexit'].forEach(id => {
   $(id).addEventListener('input', refresh); $(id).addEventListener('change', refresh);
 });
 

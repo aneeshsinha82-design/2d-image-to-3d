@@ -181,3 +181,31 @@ export function drawBackdrop(ctx, th, kind, cx, cy, age) {
   }
   ctx.restore();
 }
+
+// giant grey word in two rows behind everything: flips in with a blur, then the rows drift in opposite directions
+export function drawGiant(ctx, th, word, age, t, cy) {
+  if (!word) return;
+  const txt = word.toUpperCase(), p = easeOutCubic(clamp01(age / 0.6));
+  ctx.save();
+  ctx.font = '800 400px Inter, Arial, sans-serif';
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '-18px';
+  const size = Math.min(520, 400 * (W * 1.15) / Math.max(1, ctx.measureText(txt).width));
+  ctx.font = `800 ${Math.round(size)}px Inter, Arial, sans-serif`;
+  const tw = ctx.measureText(txt).width + size * 0.12;
+  ctx.fillStyle = th.dark ? '#ffffff' : '#000000';
+  ctx.globalAlpha = (th.dark ? 0.3 : 0.16) * p;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (p < 1) ctx.filter = `blur(${((1 - p) * 14).toFixed(1)}px)`;
+  const flip = -1 + 2 * easeOutBack(p);                   // -1 (upside down) -> 1
+  for (let row = 0; row < 2; row++) {
+    const dir = row ? 1 : -1, off = dir * ((t * 38) % tw) - row * size * 0.35;
+    for (let k = -2; k <= 2; k++) {
+      ctx.save();
+      ctx.translate(W / 2 + off + k * tw, cy + row * size * 0.82);
+      ctx.scale(1, Math.abs(flip) < 0.04 ? 0.04 : flip);
+      ctx.fillText(txt, 0, 0);
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+}

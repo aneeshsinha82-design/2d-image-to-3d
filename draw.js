@@ -1,12 +1,13 @@
 import { W, H, clamp01, easeOutCubic } from './util.js';
 import { THEMES, ALTERNATE } from './themes.js';
 import { ENTRANCES, entranceParams, drawPicture } from './pictures.js';
-import { TRANSITIONS, TRANS_LEN, cameraPre, drawTransition, drawDeco, drawGhost, drawInk, drawBackdrop } from './fx.js';
+import { TRANSITIONS, TRANS_LEN, cameraPre, drawTransition, drawDeco, drawGhost, drawGiant, drawInk, drawBackdrop } from './fx.js';
+import { CAMERAS, EXITS, cameraFor, exitFor, cameraState, applyCamera } from './camera.js';
 import { drawText, TEXT_ANIMS, LAYOUTS } from './text.js';
 import { drawOrbit, drawButton } from './icons.js';
 import { drawPaper, drawEndCardOverlay, renderShowcase } from './wrapper.js';
 
-export { W, H, TEXT_ANIMS, ENTRANCES, TRANSITIONS, LAYOUTS };
+export { W, H, TEXT_ANIMS, ENTRANCES, TRANSITIONS, LAYOUTS, CAMERAS, EXITS };
 
 function drawWatermark(ctx, th, handle) {
   if (!handle) return;
@@ -46,6 +47,10 @@ function drawScene(ctx, t, S, tl, o) {
 
   ctx.save();
   if (tq >= 0 && tq < 1) cameraPre(ctx, tkind, tq);
+  if (sc) {   // camera movement + scene exit (measured from the reference video)
+    const ck = cameraFor(o.camera, si), xk = si < tl.scenes.length - 1 ? exitFor(o.camexit, si) : 'none';
+    if (ck !== 'off' || xk !== 'none') applyCamera(ctx, cameraState(ck, xk, t - sc.start, sc.end - t));
+  }
   ctx.fillStyle = th.bg; ctx.fillRect(-W, -H, 3 * W, 3 * H);
   if (th.paper) drawPaper(ctx);
   drawDeco(ctx, th, o.deco, si, tl.scenes.length, t);
@@ -58,6 +63,7 @@ function drawScene(ctx, t, S, tl, o) {
   const cxOff = o.picPos === 'alt' && hasImg ? (ai % 2 ? 1 : -1) * 130 : 0;
 
   if (sc && sc.ghost) drawGhost(ctx, th, sc.ghost, t - sc.start, textCy);
+  if (sc && sc.giant) drawGiant(ctx, th, sc.giant, t - sc.start, t, 1500);
   if (hasImg) {
     const ev = tl.events[ai], age = t - ev.t, p = Math.min(age / 0.55, 1);
     drawBackdrop(ctx, th, o.backdrop, 330 + cxOff, 720, age);
@@ -80,13 +86,13 @@ function drawScene(ctx, t, S, tl, o) {
     const start = sc.end - Math.min(1.9, (sc.end - sc.start) * 0.65);
     drawButton(ctx, th, sc.button, hasImg || hasIcons ? 1700 : 1250, t - start);
   }
-  drawWatermark(ctx, th, o.handle);
   ctx.restore();
+  drawWatermark(ctx, th, o.handle);
 
   if (sc && tkind !== 'none') drawTransition(ctx, th, sc, t, tkind, si);
 }
 
-// o = { theme, handle, picStyle, picPos, entrance, trans, textAnim, textExit, layout, fontSet,
+// o = { theme, handle, picStyle, picPos, entrance, trans, camera, camexit, textAnim, textExit, layout, fontSet,
 //       deco, backdrop, splash, reflect, endStyle, wrapper }
 function renderDesign(ctx, t, S, tl, o) {
   if (!tl || !tl.scenes.length) {

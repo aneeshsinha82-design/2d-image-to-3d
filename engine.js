@@ -20,6 +20,7 @@ export function imageKeys(name) {
 //   [soldier]  = show image named "soldier" starting at the NEXT word ([3] = 3rd image in list)
 //   *word*     = emphasised word (accent colour)
 //   {?}        = giant ghost symbol behind the scene text (any text: {?} {0} {$})
+//   {giant:SKILL} = giant grey word rows behind the scene (flip in, drift sideways)
 //   {icons:gear,headset,24/7,user} = round icon badges orbiting the scene
 //   ((Book Now)) = black pill button with a clicking hand cursor at the end of the scene
 export function parseScript(src) {
@@ -30,7 +31,7 @@ export function parseScript(src) {
   const scenes = prepared.split(/\n\s*\n|^\s*---+\s*$/m).map(s => s.trim()).filter(Boolean);
   return scenes.map(txt => {
     const words = [];
-    let pending = null, ghost = null, icons = null, button = null;
+    let pending = null, ghost = null, giant = null, icons = null, button = null;
     for (let tok of txt.split(/\s+/)) {
       let m;
       while (true) {
@@ -38,7 +39,8 @@ export function parseScript(src) {
         else if ((m = tok.match(/^\(\(([^)]+)\)\)/))) { button = m[1].replace(/_/g, ' '); tok = tok.slice(m[0].length); }
         else if ((m = tok.match(/^\{([^}]+)\}/))) {
           const v = m[1];
-          if (/^icons:/i.test(v)) icons = v.slice(6).split(',').map(x => x.trim().toLowerCase().replace(/[^a-z0-9]/g, '')).filter(Boolean);
+          if (/^giant:/i.test(v)) giant = v.slice(6).replace(/_/g, ' ');
+          else if (/^icons:/i.test(v)) icons = v.slice(6).split(',').map(x => x.trim().toLowerCase().replace(/[^a-z0-9]/g, '')).filter(Boolean);
           else ghost = v.replace(/_/g, ' ');
           tok = tok.slice(m[0].length);
         } else break;
@@ -50,7 +52,7 @@ export function parseScript(src) {
       words.push({ text: tok, emph, tag: pending });
       pending = null;
     }
-    return { words, ghost, icons, button };
+    return { words, ghost, giant, icons, button };
   }).filter(s => s.words.length);
 }
 
@@ -109,7 +111,7 @@ export function buildTimeline(parsed, images, o = {}) {
       p.start = words[p.idx[0]].t;
       p.end = k + 1 < phrases.length ? words[phrases[k + 1].idx[0]].t : end;
     });
-    scenes.push({ start, end, words, phrases, ghost: sc.ghost, icons: sc.icons, button: sc.button });
+    scenes.push({ start, end, words, phrases, ghost: sc.ghost, giant: sc.giant, icons: sc.icons, button: sc.button });
     rawEvents.push(evs);
   });
 

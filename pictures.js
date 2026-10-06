@@ -1,6 +1,6 @@
 import { W, clamp01, easeOutCubic, easeOutBack, bounce } from './util.js';
 
-export const ENTRANCES = ['pop', 'slide', 'spin', 'left', 'right', 'drop', 'zoom', 'flip', 'swing', 'pendulum', 'snap', 'rise', 'corner', 'focus'];
+export const ENTRANCES = ['pop', 'slide', 'spin', 'left', 'right', 'drop', 'zoom', 'flip', 'swing', 'pendulum', 'snap', 'rise', 'corner', 'focus', 'settle', 'longrise', 'drift'];
 
 export function entranceParams(kind, p, age) {
   const a = { pop: 1, alpha: Math.min(age / 0.22, 1), rot: 0, kb: 1 + 0.035 * Math.min(age / 6, 1), dx: 0, dy: 0, sm: 1, sx: 1, blur: 0, pivot: false };
@@ -21,6 +21,10 @@ export function entranceParams(kind, p, age) {
     case 'rise':     a.dy = (1 - e) * 760; break;
     case 'corner':   a.dx = (1 - e) * 720; a.dy = (1 - e) * 840; a.rot = (1 - e) * 0.25; break;
     case 'focus':    a.blur = (1 - e) * 28; a.sm = 1.15 - 0.15 * e; break;
+    // reference-video moves (measured): grow from 75 %, long cubic rise from below, slide in then keep drifting left
+    case 'settle':   a.sm = 1 - 0.25 * Math.pow(1 - clamp01(age / 0.8), 1.5); break;
+    case 'longrise': a.dy = 730 * Math.pow(1 - clamp01(age / 1.65), 3); a.alpha = clamp01(age / 0.1); break;
+    case 'drift':    { const d = Math.min(age, 3); a.dx = 270 + 165 * Math.exp(-age / 0.25) - 180 * d; a.sm = 1 + 0.016 * d; break; }
     default:         a.pop = easeOutBack(p); a.rot = (1 - p) * -0.07;
   }
   return a;

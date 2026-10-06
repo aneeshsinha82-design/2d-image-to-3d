@@ -1,8 +1,9 @@
 import { W, clamp01, easeOutCubic, easeOutBack, bounce, rnd } from './util.js';
 import { FONT_SETS, FONT_KEYS } from './themes.js';
 
-export const TEXT_ANIMS = ['rise', 'type', 'letters', 'blur', 'zoom', 'slide', 'bounce', 'spin', 'glitch', 'wave', 'flip', 'scramble', 'stretch'];
-export const LAYOUTS = ['stack', 'keyword', 'keywordtop'];
+export const TEXT_ANIMS = ['rise', 'type', 'letters', 'blur', 'zoom', 'slide', 'bounce', 'spin', 'glitch', 'wave', 'flip', 'scramble', 'stretch', 'maskrise', 'focus'];
+export const LAYOUTS = ['stack', 'keyword', 'keywordtop', 'ladder'];
+const LAD_LEAD = ['focus', 'maskrise'], LAD_BIG = ['maskrise', 'focus', 'blur'];
 const KEY_ANIMS = ['blur', 'zoom', 'flip', 'glitch', 'scramble', 'bounce'];
 const HELP_ANIMS = ['rise', 'slide', 'letters', 'type', 'wave'];
 const SCRAMBLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&@$';
@@ -34,6 +35,12 @@ function drawWord(ctx, it, px, py, age, kind, k, th, ex) {
       ctx.fillText(txt[i], cx, py + (1 - p) * 60 + wob);
       cx += ctx.measureText(txt[i]).width;
     }
+  } else if (kind === 'maskrise') {   // reference video: the word rises out from behind a mask line, grey -> full colour
+    blurTo(0); ctx.textAlign = 'center';
+    const p = easeOutCubic(clamp01(age / 0.38)), w = ctx.measureText(txt).width, h = it.size;
+    ctx.beginPath(); ctx.rect(px - w / 2 - 12, py - h * 0.62, w + 24, h * 1.25); ctx.clip();
+    ctx.globalAlpha = (0.35 + 0.65 * p) * fade;
+    ctx.fillText(txt, px, py + (1 - p) * h * 0.95);
   } else if (kind === 'scramble') {
     blurTo(0); ctx.globalAlpha = clamp01(age / 0.1) * fade; ctx.textAlign = 'center';
     let s = '';
@@ -59,6 +66,7 @@ function drawWord(ctx, it, px, py, age, kind, k, th, ex) {
     else if (kind === 'slide') { dx = (k % 2 ? 1 : -1) * (1 - p) * 520; }
     else if (kind === 'bounce') { dy = -(1 - bounce(clamp01(age / 0.55))) * 320; al = clamp01(age / 0.12); }
     else if (kind === 'spin') { const q = clamp01(age / 0.45); rot = (1 - q) * -0.9; sx = sy = 0.4 + 0.6 * easeOutBack(q); al = clamp01(age / 0.15); }
+    else if (kind === 'focus') { const q = easeOutCubic(clamp01(age / 0.45)); bl = (1 - q) * 9; al = q; sx = sy = 1.05 - 0.05 * q; }
     else if (kind === 'flip') { sy = Math.max(0.001, easeOutBack(clamp01(age / 0.4))); al = clamp01(age / 0.1); }
     else if (kind === 'stretch') { const q = easeOutCubic(clamp01(age / 0.4)); sx = 2.4 - 1.4 * q; sy = 0.6 + 0.4 * q; al = q; }
     else { dy = (1 - p) * 46; sx = sy = 0.92 + 0.08 * p; }
@@ -90,9 +98,15 @@ function buildLines(ctx, ph, sc, set, layout, o) {
     const width = ctx.measureText(txt).width;
     return { w, st, txt, size, width };
   };
-  const kPos = layout === 'stack' ? -1 : pickKeyword(ph, sc);
+  let kPos = layout === 'stack' || layout === 'ladder' ? -1 : pickKeyword(ph, sc);
   let lines;
-  if (kPos < 0) {
+  if (layout === 'ladder' && ph.idx.length > 1) {          // small lead-in words, then bigger words (reference video)
+    const n = ph.idx.length, bigN = n <= 2 ? 1 : Math.ceil(n / 2);
+    const smallS = { ...set.small, col: 'text' };
+    const bigS = { ...set.styles[0], size: Math.round(set.styles[0].size * 1.25), col: 'text', isBig: true };
+    lines = [ph.idx.slice(0, n - bigN).map(wi => mk(wi, smallS)), ph.idx.slice(n - bigN).map(wi => mk(wi, bigS))];
+    kPos = 0;
+  } else if (kPos < 0) {
     lines = ph.idx.map(wi => {
       const w = sc.words[wi];
       return [mk(wi, w.emph ? set.emph : set.styles[w.gi % set.styles.length])];
@@ -108,9 +122,9 @@ function buildLines(ctx, ph, sc, set, layout, o) {
   lines.forEach(line => {
     const gap = line[0].size * 0.28, total = line.reduce((a, x) => a + x.width, 0) + gap * (line.length - 1);
     if (total > 940) { const f = 940 / total; line.forEach(x => { x.size *= f; x.width *= f; }); }
-    line.forEach(x => { x.isKey = kPos >= 0 && x.st === set.emph; });
+    line.forEach(x => { x.isKey = (kPos >= 0 && x.st === set.emph) || !!x.st.isBig; });
   });
-  return { lines, stack: kPos < 0 };
+  return { lines, stack: kPos < 0 && layout !== 'ladder', ladder: layout === 'ladder' };
 }
 
 export function drawText(ctx, sc, t, th, cy, o, si) {
@@ -120,7 +134,7 @@ export function drawText(ctx, sc, t, th, cy, o, si) {
   const setKey = o.fontSet === 'mix' ? FONT_KEYS[idx % FONT_KEYS.length] : o.fontSet;
   const set = FONT_SETS[setKey] || FONT_SETS.editorial;
   const layout = o.layout === 'mix' ? LAYOUTS[idx % LAYOUTS.length] : (o.layout || 'stack');
-  const { lines, stack } = buildLines(ctx, ph, sc, set, layout, o);
+  const { lines, stack, ladder } = buildLines(ctx, ph, sc, set, layout, o);
 
   // exit animation near the end of the phrase
   const qE = o.textExit && o.textExit !== 'none' ? clamp01((t - (ph.end - 0.28)) / 0.28) : 0;
@@ -149,7 +163,7 @@ export function drawText(ctx, sc, t, th, cy, o, si) {
       if (t < it.w.t) return;
       const age = t - it.w.t;
       let kind = o.textAnim;
-      if (!kind || kind === 'mix') kind = stack ? TEXT_ANIMS[it.w.gi % TEXT_ANIMS.length] : (it.isKey ? KEY_ANIMS[it.w.gi % KEY_ANIMS.length] : HELP_ANIMS[it.w.gi % HELP_ANIMS.length]);
+      if (!kind || kind === 'mix') kind = ladder ? (it.isKey ? LAD_BIG : LAD_LEAD)[it.w.gi % (it.isKey ? LAD_BIG.length : LAD_LEAD.length)] : stack ? TEXT_ANIMS[it.w.gi % TEXT_ANIMS.length] : (it.isKey ? KEY_ANIMS[it.w.gi % KEY_ANIMS.length] : HELP_ANIMS[it.w.gi % HELP_ANIMS.length]);
       drawWord(ctx, it, px, py, age, kind, k + li, th, ex);
       if (stack && o.reflect && it.w.emph) {
         const p = easeOutCubic(clamp01((age - (kind === 'type' || kind === 'letters' ? 0.4 : 0)) / 0.3));

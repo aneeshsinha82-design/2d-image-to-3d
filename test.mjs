@@ -1,3 +1,4 @@
+import { cameraState } from './camera.js';
 import { analyzeVoice, applyVoiceSync } from './sync.js';
 import {parseScript,buildTimeline} from './engine.js';
 import assert from 'node:assert';
@@ -50,5 +51,20 @@ assert.equal(tl5.scenes[0].ghost,'?'); assert.equal(tl5.scenes[2].button,'Book N
   applyVoiceSync(shifted, voice, { audioDur: n / sr, offset: 0.3 });
   assert(Math.abs(shifted.scenes[0].words[2].t - tl6.scenes[0].words[2].t - 0.3) < 1e-6, 'offset');
   assert.equal(applyVoiceSync(buildTimeline(parseScript(SC), [], {}), analyzeVoice(new Float32Array(sr * 2), sr), {}), null);
+}
+// camera curves measured from the reference video (px are in the 359x640 space of the measurement)
+{
+  const near = (a, b, tol, msg) => assert(Math.abs(a - b) <= tol, msg + ' got ' + a + ' want ' + b);
+  near(cameraState('riseup', 'none', 0.4, 9).dy / 3, 106, 6, 'rise at 0.4s');
+  near(cameraState('riseup', 'none', 0.8, 9).dy / 3, 34, 5, 'rise at 0.8s');
+  near(cameraState('slidein', 'none', 0.3, 9).dx / 3.008, 36, 6, 'slide in at 0.3s');
+  near(cameraState('drift', 'none', 1.0, 9).dx / 3.008, 30, 6, 'drift at 1.0s');
+  near(cameraState('settle', 'none', 0.2, 9).s, 0.85, 0.03, 'settle at 0.2s');
+  near(cameraState('pushpan', 'none', 1.33, 9).s, 1.5, 0.05, 'push at 1.33s');
+  assert.equal(cameraState('off', 'none', 0.3, 9).dy, 0);
+  assert(cameraState('off', 'zoompush', 0, 0).s > 2.5, 'zoom push reaches 2.6x at the cut');
+  assert(cameraState('off', 'whipup', 0, 0).dy < -1000, 'whip up leaves the frame');
+  assert.equal(cameraState('off', 'whipup', 0, 1).dy, 0);
+  assert.equal(parseScript("Big *SKILL* {giant:skill words}")[0].giant, 'skill words');
 }
 console.log('engine ok');
