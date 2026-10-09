@@ -3,13 +3,14 @@
 //   riseup   : whole scene starts 0.38 H below its rest position and rises with a long cubic ease-out (1.65 s), no zoom
 //   settle   : scene starts at 75 % size and grows to 100 % (0.8 s ease-out), then a very slow push-in (+4.5 %)
 //   slidein  : scene starts 0.36 W to the right and slides to rest (0.9 s cubic ease-out)
+//   drift    : fast slide in from the right, then a constant slow drift to the left (0.167 W / s) with a tiny zoom and tilt
 // // Exits (last fraction of a second of a scene, ease-in = accelerating):
 //   whipup   : whole scene whips upward and out (0.28 s)
 //   slideout : whole scene slides out to the right (0.33 s)
 //   zoompush : scene zooms hugely into the cut, up to 2.6x (0.2 s)
 import { W, H, clamp01 } from './util.js';
 
-export const CAMERAS = ['riseup', 'settle', 'slidein'];
+export const CAMERAS = ['riseup', 'settle', 'slidein', 'drift'];
 export const EXITS = ['whipup', 'slideout', 'zoompush'];
 const EXIT_MIX = ['whipup', 'none', 'zoompush', 'slideout', 'none'];
 const EXIT_LEN = { whipup: 0.28, slideout: 0.33, zoompush: 0.2 };
