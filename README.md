@@ -25,7 +25,7 @@ Icons: gear, user, headset, chat, star, check, bolt, heart, clock, 24/7, hand, m
 
 ## Reference-video style (camera moves, hard cuts, ladder text)
 Pick **Quick style preset → Reference video** to switch everything on at once, or choose the parts separately. The curves were measured frame by frame from a reference video.
-- **Camera movement** (moves the whole scene): rise & settle from below · zoom-up settle (75 % → 100 %) · slide in from the right
+- **Camera movement** (moves the whole scene): rise & settle from below · zoom-up settle (75 % → 100 %) · slide in from the right · slide in + constant drift
 - **Scene exit motion** (last fraction of a second): whip up and out · slide out to the right · zoom hugely into the cut
 - **Transition: None (hard cut)** is the reference look: the motion above does the work
 - **Text layout "Ladder":** small lead-in words, then bigger words · **Text animations:** rise from behind a mask line (grey → full colour), fade + focus pull
