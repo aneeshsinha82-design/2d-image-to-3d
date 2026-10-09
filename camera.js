@@ -28,6 +28,12 @@ export function cameraState(camKind, exitKind, u, r) {
     st.s = (1 - 0.25 * Math.pow(1 - clamp01(u / 0.8), 1.5)) * (1 + 0.045 * clamp01(u / 2.2));
   } else if (camKind === 'slidein') {
     st.dx = 0.36 * W * Math.pow(1 - clamp01(u / 0.9), 3);
+  } else if (camKind === 'drift') {
+    const d = Math.min(u, 3);
+    st.dx = 0.25 * W + 0.153 * W * Math.exp(-u / 0.25) - 0.167 * W * d;
+    st.s = 1 + 0.016 * d;
+    st.rot = 0.026 * d;
+  }
   const D = EXIT_LEN[exitKind];
   if (D && r < D) {
     const q = clamp01(1 - r / D);
